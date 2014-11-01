@@ -75,7 +75,8 @@ void timeCounter(){
   timeSeries[9]=timeLapsed++;
 }
 void keyPressed () {
- if (key=='s'){
+ // if 's' is pressed on key board it would stop or stop the plotting.
+  if (key=='s'){
   if(run == false) {
     run = true; 
     loop();
@@ -87,6 +88,7 @@ void keyPressed () {
    noLoop();
  }
 }
+// if 'r' is pressed on the keyboard it would restart the program.  
 if(key=='r'){
 
   setup();
