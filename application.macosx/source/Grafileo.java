@@ -5,6 +5,8 @@ import processing.opengl.*;
 
 import controlP5.*; 
 import processing.serial.*; 
+import java.util.*; 
+import java.text.SimpleDateFormat; 
 
 import java.util.HashMap; 
 import java.util.ArrayList; 
@@ -20,11 +22,19 @@ public class Grafileo extends PApplet {
 
 
 
+
+
+
+
+
+
 ControlP5 controlP5;
+PrintWriter output; // creates a file printer.
+String fileName ;
 // Points that mark the corners of the graph plot inside the actuall app
 float plotX1, plotX2, plotY1, plotY2;
 PImage background;
-PImage start;
+
 // the font for our axis; 
 PFont plotFont; 
 int currentTime; 
@@ -45,19 +55,29 @@ float[] tabLeft, tabRight;
 float tabTop, tabBottom; 
 float tabPad = 10; 
 int numberOfTabs;
+int[] nums;
+int sensorSelector;
+boolean coloring;
+//DateFormat fnameFormat= new SimpleDateFormat("yyMMdd_HHmm");
 public void setup() {
+ size(1080,835);
  numberOfTabs = 3; 
- size (1080,835);
+ Date now = new Date();
+ fileName = new SimpleDateFormat("yyMMdd_HHmm").format(now); 
+ output = createWriter ( fileName + ".csv") ;
+ output.println("Recorded values are:" );
+output.println("Sensor1\t" + "Sensor2\t"+"Sensor3\t"); 
+ 
  myPort= null;
  plotX1= 100; 
  plotX2= width- 120; 
  plotY1 = 200; 
  plotY2= height-200; 
  background = loadImage("ggg.png");
- start = loadImage("start.png"); 
+// start = loadImage("start.png"); 
  println(Serial.list()); 
  
- 
+ nums = new int[3];
  timeLapsed=0;
  timeSeries= new int[20];
  for(int i=0; i<timeSeries.length; i++){
@@ -73,15 +93,18 @@ public void setup() {
  timeIndex=timeSeries.length;
  pointIndex= points.length;
  smooth();
- println(timeIndex);
+ //println(timeIndex);
  run = false;
-
+ coloring=false;
+ //createGUI();
+ //customGUI();
  noLoop();
+ //createGUI();
  myPort = new Serial(this, Serial.list()[3],9600); 
 }
 
 public void draw() {
-  frameRate(20);
+  frameRate(5);
   background(background);
   fill(255);
   rectMode(CORNERS); 
@@ -117,9 +140,14 @@ public void drawXaxis(){
   if(timeSeries[i]!=0 ){ 
   text(timeSeries[i],x,plotY2+10);
   }
-
+  if(coloring == true){
   stroke(255);
+  }
+  else if(coloring==false){
+  stroke(0);
+  }
   strokeWeight(0.5f);
+ 
   line(x,plotY1, x,plotY2);
   }
   
@@ -141,8 +169,21 @@ public void drawYaxis(){
  }
 }
 public void plotPoints(){
-  //noFill();
+ 
+  if (coloring==true){
+  if (sensorSelector == 0) {
   fill(103,34,103);
+  }
+  else if ( sensorSelector ==1){
+  fill (0,128,128);
+  }
+  else if (sensorSelector ==2){
+  fill(210,105,30);
+  }
+  }
+  else if (coloring ==false){
+  noFill();
+  }
   stroke(0);
   strokeWeight(2);
   beginShape();
@@ -152,7 +193,9 @@ public void plotPoints(){
   
   }
   else if ( i+1 ==pointIndex){
-   points[i] = (int)serialRead;
+    if(nums !=null){
+   points[i] = nums[sensorSelector];
+    }
   }
   
   float x = map(i, 0, pointIndex-1, plotX1,plotX2);
@@ -190,22 +233,40 @@ if(key=='r'){
   
  restart();
 }
+if(key=='f'){
+if(coloring == false) {
+    coloring = true; 
+   
+    
+  }
+ 
+ else{
+   coloring = false;
+  
+ }
+}
 }
 
 public void serialEvent( Serial myPort){
 // get the ASCII String
-  String message = myPort.readStringUntil(LF);
-  //String inString = myPort.readStringUntil('\n');
-  // trim or remove any white spaces. 
-  //inString = trim(inString);
-  //float inByte = float(inString);
-  if(message != null){
-  // print(message);
-   serialRead = PApplet.parseFloat(message);
-   print(serialRead);
-   //output.print(message); 
-  }
+  for (int i = 0; i<3; i++) {
   
+  String number = myPort.readStringUntil(10);
+  
+  if(number != null){
+    
+  nums=PApplet.parseInt(split(number, ','));
+   print(nums[0]); 
+   print(',');
+   print(nums[1]);
+   print(',');
+   println(nums[2]);
+   
+   
+  
+   output.println(nums[0]+"\t"+nums[1]+"\t"+nums[2]); 
+  }
+  }
 }
 public void restart(){
  timeLapsed=0;
@@ -226,6 +287,8 @@ public void restart(){
  println(timeIndex);
  run = false; 
  noLoop();
+ output.flush(); 
+ output.close();
 }
 // This function draws tabs. 
 
@@ -246,7 +309,7 @@ tabTop = plotY1- textAscent()- 15;
 tabBottom = plotY1;  
 
 for ( int tabCount = 0; tabCount < numberOfTabs; tabCount++){
-  String title = ("Sensor " + tabCount+1); 
+  String title = ("Sensor " + (tabCount+1)); 
   tabLeft[tabCount]=runningX;
   float titleWidth = textWidth(title); 
   tabRight[tabCount] = tabLeft[tabCount] + tabPad + titleWidth +tabPad; 
@@ -254,11 +317,11 @@ for ( int tabCount = 0; tabCount < numberOfTabs; tabCount++){
   //if the current tab is selected then set its background white else
   // make other tabs gray. 
   
-  fill( tabCount == numberOfTabs ? 255: 244); 
+  fill( tabCount == sensorSelector ? 255: 224); 
   rect(tabLeft[tabCount], tabTop, tabRight[tabCount], tabBottom) ;
   
   //if the current tab, use  black for the text; otherwise use dark gray
-  fill(tabCount == numberOfTabs? 0 :64);
+  fill(tabCount == sensorSelector? 0 :64);
   text(title, runningX+tabPad, plotY1-10);
   
   runningX= tabRight[tabCount];
@@ -267,16 +330,21 @@ for ( int tabCount = 0; tabCount < numberOfTabs; tabCount++){
 }
 
 }
-/*
-void mousePressed(){
+
+
+public void mousePressed(){
   if(mouseY > tabTop && mouseY < tabBottom) {
-   for(int tabCount ; tabCount<numberOfTabs; tabCount++){
-   if (moust
+   for(int tabCount =0 ; tabCount<numberOfTabs; tabCount++){
+   if (mouseX>tabLeft[tabCount] && mouseX <tabRight[tabCount]){
+    if (sensorSelector!=tabCount){
+     sensorSelector = tabCount;
+    }
+   }
    }
     
   } 
 } 
-*/
+
 
 // first line of the file should be the column headers
 // first column should be the row titles
