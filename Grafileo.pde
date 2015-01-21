@@ -1,6 +1,7 @@
 
 import processing.serial.*;
 import java.util.*;
+//import java.util.Formatter;
 import java.text.SimpleDateFormat;
 
 PrintWriter output; // creates a file printer.
@@ -12,8 +13,8 @@ PImage background;
 // the font for our axis; 
 PFont plotFont; 
 int currentTime; 
-int timeLapsed; 
-int timeSeries[];
+float timeLapsed; 
+float timeSeries[];
 int timeIndex; 
 boolean run;
 short LF = 10;
@@ -37,20 +38,20 @@ int time;
 
 
 void setup() {
- size(1080,810);
+ size(1080,720);
  frameRate(2);
  numberOfTabs = 3; 
  Date now = new Date();
  fileName = new SimpleDateFormat("yyMMdd_HHmm").format(now); 
  output = createWriter ( fileName + ".csv") ;
  output.println("Recorded values are:" );
- output.println("Sensor1\t" + "Sensor2\t"+"Sensor3\t"); 
+ output.println("Time"+"," + "Sensor2"+","+"Sensor3"); 
  myPort= null;
  plotX1= 100; 
  plotX2= width- 120; 
  plotY1 = 200; 
  plotY2= height-200; 
- background = loadImage("ggg.jpg"); 
+ background = loadImage("bla3.jpg"); 
  println(Serial.list()); 
  nums = new int[3];
  
@@ -58,7 +59,7 @@ void setup() {
  nums[x] = 0; 
  } 
  timeLapsed=0;
- timeSeries= new int[20];
+ timeSeries= new float[20];
  
  for(int i=0; i<timeSeries.length; i++){
  timeSeries[i]=0; 
@@ -97,18 +98,21 @@ void draw() {
 //this method updates an array with currenttimelapse 
 void drawXaxis(){
   fill(255); 
-  textSize(20); 
+  textSize(15); 
   textAlign(CENTER,TOP);
   for(int i =0; i<timeIndex; i++){
   if(i+1 !=timeIndex){
   timeSeries[i]=timeSeries[i+1];
   }
   else if ( i+1 ==timeIndex){
-   timeSeries[i] = timeLapsed++;
+    
+   timeSeries[i] = timeLapsed;
+   timeLapsed = timeLapsed+0.5;
   }
   float x = map(i, 0, timeIndex-1, plotX1,plotX2);
   if(timeSeries[i]!=0 ){ 
-  text(timeSeries[i],x,plotY2+10);
+   String show = String.format("%.1f", timeSeries[i]);
+  text(show,x,plotY2+10);
   }
   if(coloring == true){
   stroke(255);
@@ -228,14 +232,14 @@ void serialEvent(Serial myPort){
    print(nums[1]);
    print(',');
    println(nums[2]); 
-   output.println(nums[0]+"\t"+nums[1]+"\t"+nums[2]); 
+   output.println(nums[0]+","+nums[1]+","+nums[2]); 
   }
 }
 
 }
 void restart(){
  timeLapsed=0;
- timeSeries= new int[20];
+ timeSeries= new float[20];
  for(int i=0; i<timeSeries.length; i++){
  timeSeries[i]=0; 
  }
