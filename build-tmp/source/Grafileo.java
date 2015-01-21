@@ -21,6 +21,7 @@ public class Grafileo extends PApplet {
 
 
 
+
 //import java.util.Formatter;
 
 
@@ -61,11 +62,13 @@ public void setup() {
  size(1080,720);
  frameRate(2);
  numberOfTabs = 3; 
+ /*
  Date now = new Date();
  fileName = new SimpleDateFormat("yyMMdd_HHmm").format(now); 
  output = createWriter ( fileName + ".csv") ;
  output.println("Recorded values are:" );
  output.println("Time"+"," + "Sensor2"+","+"Sensor3"); 
+ */
  myPort= null;
  plotX1= 100; 
  plotX2= width- 120; 
@@ -211,6 +214,11 @@ public void keyPressed () {
   if (key=='s'){
   if(run == false) {
     run = true;
+ Date now = new Date();
+ fileName = new SimpleDateFormat("yyMMdd_HHmm").format(now); 
+ output = createWriter ( fileName + ".csv") ;
+ output.println("Recorded values are:" );
+ output.println("Time"+"," + "Sensor2"+","+"Sensor3"); 
    myPort.write ("s"); 
     loop();  
   }
@@ -219,13 +227,17 @@ public void keyPressed () {
    run = false;
    myPort.write ("s"); 
    noLoop();
+   restart();
  }
 }
+
 // if 'r' is pressed on the keyboard it would restart the program.  
+/*
 if(key=='r'){
   
  restart();
 }
+*/
 if(key=='f'){
 if(coloring == false) {
     coloring = true;  
