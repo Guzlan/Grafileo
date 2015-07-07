@@ -73,8 +73,8 @@ void setup() {
  points[i]=0; 
  }
  dataMin =0; 
- dataMax = 1024;
- yAxisInterval=100;  
+ dataMax = 70000;
+ yAxisInterval=10000;  
  timeIndex=timeSeries.length;
  pointIndex= points.length;
  smooth();
@@ -133,7 +133,7 @@ void drawYaxis(){
  textSize(20); 
  textAlign(RIGHT, CENTER);
  
- for ( float v=100;v <=dataMax;v += yAxisInterval){
+ for ( float v=10000;v <=dataMax;v += yAxisInterval){
    float y = map(v, dataMin, dataMax, plotY2,plotY1);
    if ( v%yAxisInterval==0){
    text(floor(v),plotX1-10,y); 
